@@ -1,0 +1,76 @@
+---
+title: "Volcano plot"
+author: "Deeksha_Shetty"
+date: "17/08/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+The RNA seq data provides information on the differential gene expression under biofilm and planktonic conditions in *Salmonella enterica serovar Enteritidis*. The RNA extraction was carried out using Qiagen RNA extraction kit and the samples were processed via Illumina Miseq for transcriptomic studies. The raw reads were processed and the DESeq2 package was used for normalization, visualization, and differential analysis of differentially expressed genes.
+
+## Volcano Plot
+
+This plot identifies that genes that are upregulated and downregulated under a the given conditions.
+
+```{r, fig.width= 15, fig.height = 7}
+#Read the table
+RNA_Data <- read.table("results.txt", header=TRUE, sep = '\t')
+head(RNA_Data)
+
+# Making volcano plot
+
+library(BiocManager)
+library(EnhancedVolcano)
+
+# Plot 1
+
+EnhancedVolcano(RNA_Data,
+                lab = rownames(RNA_Data),
+                x = 'log2FoldChange',
+                y = 'pvalue')
+
+# Plot 2
+keyvals <- ifelse(
+  RNA_Data$log2FoldChange < -20.5, 'green',
+  ifelse(RNA_Data$log2FoldChange > 15.5, 'red',
+         'black'))
+keyvals[is.na(keyvals)] <- 'black'
+names(keyvals)[keyvals == 'red'] <- 'high'
+names(keyvals)[keyvals == 'black'] <- 'mid'
+names(keyvals)[keyvals == 'green'] <- 'low'
+
+EnhancedVolcano(RNA_Data,
+                lab = rownames(RNA_Data),
+                x = 'log2FoldChange',
+                y = 'pvalue',
+                selectLab = rownames(RNA_Data)[which(names(keyvals) %in% c('high', 'low'))],
+                xlab = bquote(~Log[2]~ 'fold change'),
+                title = 'Volcano Plot',
+                pCutoff = 10e-14,
+                FCcutoff = 5.0,
+                pointSize = 4.5,
+                labSize = 4.5,
+                shape = c(6, 4, 2, 11),
+                colCustom = keyvals,
+                colAlpha = 1,
+                legendPosition = 'right',
+                legendLabSize = 15,
+                legendIconSize = 4.0,
+                drawConnectors = TRUE,
+                widthConnectors = 1.0,
+                colConnectors = 'black',
+                arrowheads = FALSE,
+                gridlines.major = TRUE,
+                gridlines.minor = FALSE,
+                border = 'partial',
+                borderWidth = 1.0,
+                borderColour = 'black')
+
+```
+
+
